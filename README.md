@@ -1,1 +1,1 @@
-# emacs-cfg
+# emacs configuration (start-up, elisp code libraries, etc.)
