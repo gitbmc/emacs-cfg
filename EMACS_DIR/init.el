@@ -8,7 +8,22 @@
 ;;          (load custom-file)))
 
 ;; TODO use this function properly, as per https://www.emacswiki.org/emacs/LoadPath; i.e., call repeatedly setting default-directory to the directories listed below each time [updated 2018-10-03: change .emacs.d/lisp to .emacs.d/elisp, and removed "homedir-rooted" elisp/emacs-lisp dirs]
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (normal-top-level-add-to-load-path '(".emacs.d/elisp"))
+
+;; auto-install ...???
+;;(require 'auto-install)
+;;(auto-install-update-emacswiki-package-name t)
+
+;; direx (using auto-install) ...???
+;;(auto-install-from-url "https://raw.github.com/m2ym/direx-el/master/direx.el")
+(require 'direx)
 
 (load-library "xemacs-ported")
 (load-library "command")
@@ -72,3 +87,15 @@
 (global-set-key "\C-cm" 'compile) ;; ...and, similar to above, should look at
 (global-set-key "\C-cv" 'recompile) ;; http://www.emacswiki.org/emacs/SmartCompile
 (global-set-key "\C-xj" 'direx:jump-to-directory) ;; TODO check if direx is installed...?
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
