@@ -38,7 +38,8 @@
 ;; comes up with the "wrong" answer - when this bug gets fixed in a future
 ;; release of Emacs then this simply becomes superfluous and could be removed
 
-(setq-default grep-find-use-xargs 'exec-plus)
+;; commented-out 2018-10-24: with WSL this shouldn't be needed...?
+;;(setq-default grep-find-use-xargs 'exec-plus)
 
 (global-set-key [(control meta escape)] 'keyboard-escape-quit)
 (define-key isearch-mode-map [(control meta escape)] 'isearch-cancel)
@@ -86,13 +87,39 @@
 (global-set-key "\C-cc" 'comment-region) ;; should be keymap-specific
 (global-set-key "\C-cm" 'compile) ;; ...and, similar to above, should look at
 (global-set-key "\C-cv" 'recompile) ;; http://www.emacswiki.org/emacs/SmartCompile
-(global-set-key "\C-xj" 'direx:jump-to-directory) ;; TODO check if direx is installed...?
+(global-set-key "\C-xj" 'direx:jump-to-directory)
+
+;; Magit customizations
+(global-set-key (kbd "C-x g") 'magit-status)
+(global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
+
+(setq magit-view-git-manual-method 'man)
+
+(magit-define-popup-action 'magit-file-popup
+			   ?R "Rename file" 'magit-file-rename)
+(magit-define-popup-action 'magit-file-popup
+			   ?K "Delete file" 'magit-file-delete)
+(magit-define-popup-action 'magit-file-popup
+			   ?U "Untrack file" 'magit-file-untrack)
+(magit-define-popup-action 'magit-file-popup
+			   ?C "Checkout file" 'magit-file-checkout)
+
+(setq vc-handled-backends (delq 'Git vc-handled-backends)) ;; not just for Magit
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(column-number-mode t)
+ '(display-line-numbers-type nil)
+ '(package-archives
+   (quote
+    (("melpa" . "http://melpa.org/packages/")
+     ("gnu" . "https://elpa.gnu.org/packages/"))))
+ '(package-selected-packages (quote (magit)))
+ '(scroll-bar-mode (quote left))
+ '(size-indication-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
