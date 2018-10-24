@@ -9,6 +9,3 @@
 
 # Undo-tree save-files
 *.~undo-tree
-
-# elpa
-EMACS_DIR/elpa

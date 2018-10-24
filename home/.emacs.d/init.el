@@ -17,16 +17,16 @@
 
 (normal-top-level-add-to-load-path '(".emacs.d/elisp"))
 
+(load-library "xemacs-ported")
+(load-library "command")
+
 ;; auto-install ...???
 ;;(require 'auto-install)
 ;;(auto-install-update-emacswiki-package-name t)
 
 ;; direx (using auto-install) ...???
 ;;(auto-install-from-url "https://raw.github.com/m2ym/direx-el/master/direx.el")
-(require 'direx)
-
-(load-library "xemacs-ported")
-(load-library "command")
+(require 'direx-project)
 
 (when (memq system-type '(ms-dos windows-nt))
   (global-set-key [(mouse-2)] 'mouse-yank-at-click)) ;; no primary selection...
