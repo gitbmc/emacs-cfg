@@ -90,6 +90,8 @@
 (global-set-key "\C-xj" 'direx:jump-to-directory)
 
 ;; Magit customizations
+(require 'magit)
+
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 

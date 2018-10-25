@@ -252,7 +252,7 @@ descendants. You may add a heuristic method for speed.")
 (defun direx:item-render-name-part (item)
   (propertize (direx:item-name item)
               'face (direx:item-face item)
-              'mouse-face 'hightlight
+              'mouse-face 'highlight
               'help-echo "mouse-1: toggle or find this node
 mouse-2: find this node in other window"))
 
