@@ -1,13 +1,9 @@
-;; commented-out 2018-10-03: maybe without a "~/.emacs" file, this isn't needed
-;; (let ((user-custom-file (convert-standard-filename
-;;                          (concat user-emacs-directory "custom.el"))))
-;;   (if (not (file-exists-p user-custom-file))
-;;       (message (concat "WARNING: custom file " user-custom-file 
-;;                        " does not exist - defaulting to " custom-file))
-;;          (setq custom-file user-custom-file)
-;;          (load custom-file)))
-
-;; TODO use this function properly, as per https://www.emacswiki.org/emacs/LoadPath; i.e., call repeatedly setting default-directory to the directories listed below each time [updated 2018-10-03: change .emacs.d/lisp to .emacs.d/elisp, and removed "homedir-rooted" elisp/emacs-lisp dirs]
+(let ((user-custom-file (expand-file-name "custom.el" user-emacs-directory)))
+  (if (not (file-readable-p user-custom-file))
+      (message (concat "WARNING: custom file " user-custom-file 
+                       " does not exist - defaulting to " custom-file))
+    (setq custom-file user-custom-file)
+    (load custom-file)))
 
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
@@ -15,10 +11,15 @@
 ;; You may delete these explanatory comments.
 (package-initialize)
 
-(normal-top-level-add-to-load-path '(".emacs.d/elisp"))
-
-(load-library "xemacs-ported")
-(load-library "command")
+;; TODO use this function properly, as per https://www.emacswiki.org/emacs/LoadPath; i.e., call repeatedly setting default-directory to the directories listed below each time [updated 2018-10-03: change .emacs.d/lisp to .emacs.d/elisp, and removed "homedir-rooted" elisp/emacs-lisp dirs -> TODO comment now obsolete...?]
+(let ((user-elisp-dir (expand-file-name "elisp" user-emacs-directory)))
+  (if (not (file-accessible-directory-p user-elisp-dir))
+      (message (concat "WARNING: user emacs lisp directory "
+                       user-elisp-dir 
+                       " not accessible - skipping user emacs lisp loading"))
+    (normal-top-level-add-to-load-path (list user-elisp-dir))
+    (load-library "xemacs-ported")
+    (load-library "command")))
 
 ;; auto-install ...???
 ;;(require 'auto-install)
@@ -37,7 +38,6 @@
 ;; Bash does not recognize NUL - as of 2.7.2 or possibly much earlier - so it
 ;; comes up with the "wrong" answer - when this bug gets fixed in a future
 ;; release of Emacs then this simply becomes superfluous and could be removed
-
 ;; commented-out 2018-10-24: with WSL this shouldn't be needed...?
 ;;(setq-default grep-find-use-xargs 'exec-plus)
 
@@ -88,6 +88,9 @@
 (global-set-key "\C-cm" 'compile) ;; ...and, similar to above, should look at
 (global-set-key "\C-cv" 'recompile) ;; http://www.emacswiki.org/emacs/SmartCompile
 (global-set-key "\C-xj" 'direx:jump-to-directory)
+(global-set-key "\C-cj" 'direx:find-directory)
+
+(global-set-key "\C-c\C-x\C-c" 'save-buffers-kill-emacs)
 
 ;; Magit customizations
 (require 'magit)
@@ -108,23 +111,13 @@
 
 (setq vc-handled-backends (delq 'Git vc-handled-backends)) ;; not just for Magit
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(column-number-mode t)
- '(display-line-numbers-type nil)
- '(package-archives
-   (quote
-    (("melpa" . "http://melpa.org/packages/")
-     ("gnu" . "https://elpa.gnu.org/packages/"))))
- '(package-selected-packages (quote (magit)))
- '(scroll-bar-mode (quote left))
- '(size-indication-mode t))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+;; Emacs desktop compatibility with daemon mode: load desktop after initial
+;; frame is displayed (presumably triggered by client invocation)
+(if (daemonp)
+    (add-hook 'after-make-frame-functions
+              (lambda (unused-frame-arg)
+                (unless desktop-save-mode
+                  (desktop-save-mode 1)
+                  (desktop-read)))
+              t)
+  (desktop-save-mode 1))

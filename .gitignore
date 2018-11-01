@@ -1,5 +1,17 @@
-# Compiled
+# Emacs lisp compiled
 *.elc
+
+# Emacs auto-save list
+auto-save-list
+
+# Emacs history
+history
+
+# Emacs recent file list
+recentf
+
+# Emacs desktop
+.emacs.desktop
 
 # Packaging
 .cask
