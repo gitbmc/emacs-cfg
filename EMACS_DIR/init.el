@@ -90,7 +90,7 @@
 (global-set-key "\C-xj" 'direx:jump-to-directory)
 (global-set-key "\C-cj" 'direx:find-directory)
 
-(global-set-key "\C-c\C-x\C-c" 'save-buffers-kill-emacs)
+(global-set-key "\C-x\C-a" 'save-buffers-kill-emacs)
 
 ;; Magit customizations
 (require 'magit)
