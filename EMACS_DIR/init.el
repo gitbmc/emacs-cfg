@@ -1,7 +1,7 @@
 (let ((user-custom-file (expand-file-name "custom.el" user-emacs-directory)))
   (if (not (file-readable-p user-custom-file))
-      (message (concat "WARNING: custom file " user-custom-file 
-                       " does not exist - defaulting to " custom-file))
+      (message (concat "WARNING: cannot find/read custom file " user-custom-file
+                       " - defaulting to " custom-file))
     (setq custom-file user-custom-file)
     (load custom-file)))
 
@@ -11,24 +11,57 @@
 ;; You may delete these explanatory comments.
 (package-initialize)
 
-;; TODO use this function properly, as per https://www.emacswiki.org/emacs/LoadPath; i.e., call repeatedly setting default-directory to the directories listed below each time [updated 2018-10-03: change .emacs.d/lisp to .emacs.d/elisp, and removed "homedir-rooted" elisp/emacs-lisp dirs -> TODO comment now obsolete...?]
-(let ((user-elisp-dir (expand-file-name "elisp" user-emacs-directory)))
-  (if (not (file-accessible-directory-p user-elisp-dir))
-      (message (concat "WARNING: user emacs lisp directory "
-                       user-elisp-dir 
-                       " not accessible - skipping user emacs lisp loading"))
-    (normal-top-level-add-to-load-path (list user-elisp-dir))
-    (load-library "xemacs-ported")
-    (load-library "command")))
-
 ;; auto-install ...???
 ;;(require 'auto-install)
 ;;(auto-install-update-emacswiki-package-name t)
 
 ;; direx (using auto-install) ...???
 ;;(auto-install-from-url "https://raw.github.com/m2ym/direx-el/master/direx.el")
-(require 'direx-project)
 
+(defun compile-and-load-elisp-srctree (src &optional elc)
+  (interactive
+   (let* ((src (read-directory-name "Emacs lisp source directory:" nil nil 1))
+          (work (file-name-as-directory src))
+          elc) ;; init elc to nil
+     (while (null elc)
+       (let ((read (read-directory-name "Emacs lisp output directory: " work)))
+         (if (or (file-directory-p read)
+                 (y-or-n-p (concat "Top-level emacs lisp output directory \""
+                                   (file-name-as-directory read)
+                                   "\" does not exist - create?")))
+             (setq elc read)
+           (setq work read))))
+     (list src elc)))
+  (let* ((indir (expand-file-name src))
+         (outdir (when elc (file-name-as-directory (expand-file-name elc))))
+         (load-path (cl-copy-list load-path))
+         elcfiles ;; init elcfiles to nil (empty list)
+         (byte-compile-dest-file-function
+          (lambda (file)
+            (let ((elcfile (if (or (null outdir) (file-equal-p indir outdir))
+                               (concat (file-name-sans-extension file) ".elc")
+                             (let ((srcdir (file-name-directory file))
+                                   (elcdir (concat outdir (file-name-directory
+                                                           (file-relative-name
+                                                            file indir)))))
+                               (unless (member srcdir load-path)
+                                 (push srcdir load-path))
+                               (mkdir elcdir t)
+                               (concat elcdir (file-name-base file) ".elc")))))
+              (unless (member elcfile elcfiles) (push elcfile elcfiles))
+              elcfile))))
+    (byte-recompile-directory indir 0)
+    (mapc 'load elcfiles)))
+
+(let* ((user-elisp (expand-file-name "elisp" user-emacs-directory))
+       (user-elisp-src (concat user-elisp "src")))
+  (if (not (file-accessible-directory-p user-elisp-src))
+      (message (concat "WARNING: user emacs lisp source directory "
+                       user-elisp-src
+                       " not accessible - skipping user emacs lisp loading"))
+    (compile-and-load-elisp-srctree user-elisp-src (concat user-elisp "elc"))))
+
+;;(message "%s: %s" (current-time-string) "before system type check...")
 (when (memq system-type '(ms-dos windows-nt))
   (global-set-key [(mouse-2)] 'mouse-yank-at-click)) ;; no primary selection...
 
@@ -41,6 +74,7 @@
 ;; commented-out 2018-10-24: with WSL this shouldn't be needed...?
 ;;(setq-default grep-find-use-xargs 'exec-plus)
 
+;;(message "%s: %s" (current-time-string) "before first keybinding...")
 (global-set-key [(control meta escape)] 'keyboard-escape-quit)
 (define-key isearch-mode-map [(control meta escape)] 'isearch-cancel)
 
@@ -58,6 +92,7 @@
 (global-set-key [(control shift meta f4)] 'save-buffers-kill-terminal);; C-x C-c
 
 (global-set-key [f5] 'repeat-complex-command) ;; Redo w/ history
+(global-set-key [(meta f5)] 'repeat-matching-complex-command) ;; Redo w/ search
 (global-set-key [(control f5)] 'repeat) ;; Repeat last command
 (global-set-key [(shift f5)] 'call-last-kbd-macro) ;; Repeat keyboard macro
 (global-set-key [f6] 'switch-to-other-buffer) ;; from XEmacs
@@ -101,13 +136,13 @@
 (setq magit-view-git-manual-method 'man)
 
 (magit-define-popup-action 'magit-file-popup
-			   ?R "Rename file" 'magit-file-rename)
+  ?R "Rename file" 'magit-file-rename)
 (magit-define-popup-action 'magit-file-popup
-			   ?K "Delete file" 'magit-file-delete)
+  ?K "Delete file" 'magit-file-delete)
 (magit-define-popup-action 'magit-file-popup
-			   ?U "Untrack file" 'magit-file-untrack)
+  ?U "Untrack file" 'magit-file-untrack)
 (magit-define-popup-action 'magit-file-popup
-			   ?C "Checkout file" 'magit-file-checkout)
+  ?C "Checkout file" 'magit-file-checkout)
 
 (setq vc-handled-backends (delq 'Git vc-handled-backends)) ;; not just for Magit
 
@@ -120,4 +155,5 @@
                   (desktop-save-mode 1)
                   (desktop-read)))
               t)
+  ;;(message "%s: %s" (current-time-string) "starting desktop immediately...")
   (desktop-save-mode 1))
