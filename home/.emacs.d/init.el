@@ -38,28 +38,25 @@
          elcfiles ;; init elcfiles to nil (empty list)
          (byte-compile-dest-file-function
           (lambda (file)
-            (let ((elcfile (if (or (null outdir) (file-equal-p indir outdir))
+            (let ((srcdir (file-name-directory file))
+                  (elcfile (if (or (null outdir) (file-equal-p indir outdir))
                                (concat (file-name-sans-extension file) ".elc")
-                             (let ((srcdir (file-name-directory file))
-                                   (elcdir (concat outdir (file-name-directory
+                             (let ((elcdir (concat outdir (file-name-directory
                                                            (file-relative-name
                                                             file indir)))))
-                               (unless (member srcdir load-path)
-                                 (push srcdir load-path))
                                (mkdir elcdir t)
                                (concat elcdir (file-name-base file) ".elc")))))
+              (unless (member srcdir load-path) (push srcdir load-path))
               (unless (member elcfile elcfiles) (push elcfile elcfiles))
               elcfile))))
     (byte-recompile-directory indir 0)
     (mapc 'load elcfiles)))
 
-(let* ((user-elisp (expand-file-name "elisp" user-emacs-directory))
-       (user-elisp-src (concat user-elisp "src")))
-  (if (not (file-accessible-directory-p user-elisp-src))
-      (message (concat "WARNING: user emacs lisp source directory "
-                       user-elisp-src
+(let* ((user-elisp (expand-file-name "elisp" user-emacs-directory)))
+  (if (not (file-accessible-directory-p user-elisp))
+      (message (concat "WARNING: user emacs lisp directory " user-elisp
                        " not accessible - skipping user emacs lisp loading"))
-    (compile-and-load-elisp-srctree user-elisp-src (concat user-elisp "elc"))))
+    (compile-and-load-elisp-srctree user-elisp)))
 
 ;;(message "%s: %s" (current-time-string) "before system type check...")
 (when (memq system-type '(ms-dos windows-nt))
