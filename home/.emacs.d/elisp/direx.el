@@ -1010,6 +1010,15 @@ mouse-2: find this node in other window"))
     (direx:maybe-goto-current-buffer-item buffer)
     buffer))
 
+(cl-defun direx:jump-to-directory-with-context (&optional
+                                                (dirname default-directory)
+                                                (context "/"))
+  (interactive "DDirex (directory): \nDTop-level context (directory): ")
+  (direx:find-directory context)
+  (direx:goto-item-for-tree (direx:make-directory dirname))
+  (direx:expand-item)
+  (cd dirname))
+
 ;;;###autoload
 (defun direx:jump-to-directory ()
   (interactive)
